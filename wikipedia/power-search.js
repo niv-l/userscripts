@@ -1,19 +1,106 @@
 // ==UserScript==
-// @name         Wikipedia Power-Search (double-Ctrl)
+// @name         Wikipedia Power-Search
 // @namespace    https://github.com/niv-l/userscripts/
-// @version      1.1
-// @description  Keyboard-centric search overlay for Wikipedia – double-Ctrl to open, autocomplete + preview.
+// @version      1.2
+// @description  Keyboard-centric search overlay for Wikipedia.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/*
 // @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function () {
   'use strict';
 
-  const DOUBLE_CTRL_INTERVAL = 400;
-  const MAX_SUGGESTIONS      = 12;
-  const KEY_NAV_CLASS        = 'wkq-selected';
+  // available bindings
+  const BINDINGS = [
+    { id: 'doubleCtrl', label: 'Double Ctrl', type: 'double', key: 'Control', interval: 400 },
+    { id: 'ctrlK',      label: 'Ctrl + K',   type: 'combo',  key: 'k', ctrl: true        },
+    { id: 'slash',      label: '/ (single)', type: 'single', key: '/'                     },
+  ];
+
+  const DEFAULT_BINDING_ID = 'doubleCtrl';
+
+  // wrapper so the script still works if GM_* is missing (Firefox + Violentmonkey etc.)
+  const storage = {
+    get:  (k, d)  => (typeof GM_getValue === 'function') ? GM_getValue(k, d) : JSON.parse(localStorage.getItem(k) || 'null') ?? d,
+    set:  (k, v)  => (typeof GM_setValue === 'function') ? GM_setValue(k, v) : localStorage.setItem(k, JSON.stringify(v)),
+  };
+
+  function getCurrentBinding () {
+    const id = storage.get('wkqHotKey', DEFAULT_BINDING_ID);
+    return BINDINGS.find(b => b.id === id) || BINDINGS[0];
+  }
+
+  function chooseBinding () {
+    const labels = BINDINGS.map(b => `${b.id === getCurrentBinding().id ? '✓ ' : '  '} ${b.label}`)
+                           .join('\n');
+    const answer = prompt(
+      'Wikipedia Power-Search --- choose opener:\n' +
+      labels + '\n\n' +
+      'Type the name (e.g. "ctrlK") or press Cancel to keep the current one.',
+      getCurrentBinding().id
+    );
+    if (!answer) return;
+    const newB = BINDINGS.find(b => b.id.toLowerCase() === answer.trim().toLowerCase());
+    if (newB) {
+      storage.set('wkqHotKey', newB.id);
+      alert(`Hot-key switched to: ${newB.label}`);
+    } else {
+      alert('Unrecognised choice – nothing changed.');
+    }
+  }
+
+  if (typeof GM_registerMenuCommand === 'function')
+    GM_registerMenuCommand('Configure hot-key …', chooseBinding);
+
+  let lastCtrlTime = 0;
+
+  // key listener
+  document.addEventListener('keydown', e => {
+    const bind = getCurrentBinding();
+    switch (bind.type) {
+      case 'double':
+        if (e.key === bind.key) {
+          const now = Date.now();
+          if (now - lastCtrlTime < bind.interval) {
+            e.preventDefault();
+            toggleOverlay(true);
+          }
+          lastCtrlTime = now;
+        }
+        break;
+
+      case 'combo':
+        if (e.key.toLowerCase() === bind.key &&
+            (!!bind.ctrl === e.ctrlKey) &&
+            (!!bind.shift === e.shiftKey) &&
+            (!!bind.alt === e.altKey) ) {
+          e.preventDefault();
+          toggleOverlay(true);
+        }
+        break;
+
+      case 'single':
+        if (e.key === bind.key &&
+            !e.ctrlKey && !e.metaKey && !e.altKey) {
+          // let Wikipedia’s own search bar lose focus first
+          if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+          e.preventDefault();
+          toggleOverlay(true);
+        }
+        break;
+    }
+
+    if (e.key === 'Escape' && overlay.style.display !== 'none') {
+      toggleOverlay(false);
+    }
+  });
+
+  const MAX_SUGGESTIONS = 12;
+  const KEY_NAV_CLASS   = 'wkq-selected';
 
   GM_addStyle(`
     #wkq-overlay {
@@ -69,21 +156,6 @@
   const listEl     = overlay.querySelector('#wkq-list');
   const previewEl  = overlay.querySelector('#wkq-right');
 
-  let lastCtrlTime = 0;
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Control') {
-      const now = Date.now();
-      if (now - lastCtrlTime < DOUBLE_CTRL_INTERVAL) {
-        e.preventDefault();
-        toggleOverlay(true);
-      }
-      lastCtrlTime = now;
-    }
-    if (e.key === 'Escape' && overlay.style.display !== 'none') {
-      toggleOverlay(false);
-    }
-  });
-
   function toggleOverlay(show) {
     overlay.style.display = show ? 'flex' : 'none';
     if (show) {
@@ -131,9 +203,7 @@
       li.innerHTML = `<strong>${title}</strong><br><small>${descs[idx] || ''}</small>`;
       listEl.appendChild(li);
     });
-    if (listEl.children.length > 0) {
-      selectIndex(0);
-    }
+    if (listEl.children.length > 0) selectIndex(0);
   }
 
   let selIndex = -1;
@@ -185,6 +255,7 @@
     return listEl.children[selIndex];
   }
 
+  // preview logic
   let previewAbort = null;
   function showPreview(title) {
     if (!title) return;
