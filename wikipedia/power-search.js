@@ -23,13 +23,13 @@
       padding-top: 15vh;
     }
     #wkq-box {
-      background:#fff; color:#202122; width:640px; max-width:90vw;
+      background:#fff; color:#202122; width:900px; max-width:90vw;
       border-radius:6px; box-shadow:0 6px 24px rgba(0,0,0,.25);
       display:flex; flex-direction:row; overflow:hidden; font-size:15px;
       height: 65vh; max-height: 700px;
     }
     #wkq-left {
-      flex:1 1 60%; padding:16px; display:flex; flex-direction:column;
+      flex:1 1 40%; padding:16px; display:flex; flex-direction:column;
     }
     #wkq-input {
       width:100%; border:1px solid #a2a9b1; border-radius:4px;
