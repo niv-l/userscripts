@@ -32,7 +32,7 @@
       flex:1 1 40%; padding:16px; display:flex; flex-direction:column;
     }
     #wkq-input {
-      width:100%; border:1px solid #a2a9b1; border-radius:4px;
+      width:95%; border:1px solid #a2a9b1; border-radius:4px;
       padding:8px 10px; font-size:17px; outline:none;
       flex-shrink: 0;
     }
