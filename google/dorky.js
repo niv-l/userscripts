@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Dorky - A Google-Fu / Dorking Helper
-// @version      0.2
+// @version      0.3
 // @description  Autocompletes quotes, adds keybinding templates for dorking (site:, intext:, etc.), and other QoL features.
 // @author       Nivyan Lakhani
 // @match        *://www.google.com/*
@@ -58,20 +58,45 @@
     if (!searchInput) return;
 
     let pendingBinding = null;
+    let previewElement = null;
+
+    function showPreview(binding) {
+        if (!previewElement) {
+            previewElement = document.createElement('div');
+            previewElement.className = 'dorky-preview';
+            document.body.appendChild(previewElement);
+        }
+
+        let content = `<div class="dorky-preview-title">${binding.operator}</div>`;
+        for (const key in binding.subBindings) {
+            content += `<div class="dorky-preview-item"><span class="dorky-preview-key">${key}</span> ${binding.subBindings[key]}</div>`;
+        }
+        previewElement.innerHTML = content;
+
+        const inputRect = searchInput.getBoundingClientRect();
+        previewElement.style.display = 'block';
+        previewElement.style.top = `${window.scrollY + inputRect.bottom + 5}px`;
+        previewElement.style.left = `${window.scrollX + inputRect.left}px`;
+    }
+
+    function hidePreview() {
+        if (previewElement) {
+            previewElement.style.display = 'none';
+        }
+        pendingBinding = null;
+    }
 
     searchInput.addEventListener('keydown', function(e) {
         // Handle the second key of a two-key binding.
         if (pendingBinding) {
-            // If space is pressed, exit pending mode without inserting a space.
-            if (e.key === ' ') {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                pendingBinding = null;
-                return;
-            }
-
             e.preventDefault();
             e.stopImmediatePropagation();
+
+            // If space is pressed, just exit pending mode.
+            if (e.key === ' ') {
+                hidePreview();
+                return;
+            }
 
             const subKey = e.key.toLowerCase();
             const value = pendingBinding.subBindings[subKey];
@@ -80,8 +105,9 @@
                 // A valid sub-binding was pressed, insert the value and a trailing space.
                 insertText(value + ' ', value.length + 1, false);
             }
+
             // For any other key, exit pending mode.
-            pendingBinding = null;
+            hidePreview();
             return;
         }
 
@@ -98,6 +124,7 @@
                     // Start a two-key binding by inserting the operator and waiting.
                     insertText(binding.operator, binding.operator.length, true, false);
                     pendingBinding = binding;
+                    showPreview(binding);
                 } else {
                     // It's a simple, one-shot binding. Append it with a trailing space.
                     insertText(binding.text, binding.cursorPos, true, true);
@@ -118,6 +145,44 @@
                 break;
         }
     });
+
+        // Code for previewing sub-maps.
+    GM_addStyle(`
+        .dorky-preview {
+            position: absolute;
+            background-color: #303134;
+            color: #e8eaed;
+            border: 1px solid #5f6368;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 14px;
+            z-index: 9999;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: none; /* Hidden by default */
+            max-width: 400px;
+            line-height: 1.5;
+        }
+        .dorky-preview-title {
+            color: #8ab4f8;
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #5f6368;
+        }
+        .dorky-preview-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .dorky-preview-key {
+            color: #fdd663;
+            font-weight: bold;
+            padding-right: 15px;
+        }
+    `);
+
+    // Hide preview if the user clicks away from the input
+    searchInput.addEventListener('blur', hidePreview);
 
     function insertText(text, cursorPos, appendToEnd = false, addTrailingSpace = true) {
         searchInput.focus();
