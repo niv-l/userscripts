@@ -19,8 +19,8 @@
         'u': { text: 'inurl:""',      cursorPos: 7 },
         'r': { text: 'related:',      cursorPos: 8 },
         'e': { text: '-',             cursorPos: 1 },
-        'a': { text: ' ""',           cursorPos: 2 },
-        'o': { text: ' OR ',          cursorPos: 4 },
+        'a': { text: '""',           cursorPos: 1 },
+        'o': { text: 'OR',          cursorPos: 3 },
 
         // Two-key bindings (e.g., Alt+s, then g for site:github.com)
         's': { // site:
