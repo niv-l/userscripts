@@ -61,8 +61,10 @@
     searchInput.addEventListener('keydown', function(e) {
         // Handle the second key of a two-key binding.
         if (pendingBinding) {
-            // If space is pressed, exit pending mode and let the space be typed.
+            // If space is pressed, exit pending mode without inserting a space.
             if (e.key === ' ') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
                 pendingBinding = null;
                 return;
             }
