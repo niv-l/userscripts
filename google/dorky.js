@@ -161,7 +161,7 @@
             const template = DORK_TEMPLATES[e.key.toLowerCase()];
             if (template) {
                 e.preventDefault();
-                insertText(template.text, template.cursorPos, template.trigger);
+                insertText(template.text, template.cursorPos, template.trigger, true);
             }
             return;
         }
@@ -194,8 +194,8 @@
 
     searchInput.addEventListener('blur', () => setTimeout(hideAutocompleteMenu, 150));
 
-    function insertText(text, cursorPos, trigger = null) {
-        const start = searchInput.selectionStart;
+    function insertText(text, cursorPos, trigger = null, appendToEnd = false) {
+        const start = appendToEnd ? searchInput.value.length : searchInput.selectionStart;
         let textToInsert = text;
         if (start > 0 && searchInput.value[start - 1] !== ' ') {
             textToInsert = ' ' + text;
