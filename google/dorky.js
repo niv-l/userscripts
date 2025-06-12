@@ -19,7 +19,7 @@
         'u': { text: 'inurl:""',      cursorPos: 7 },
         'r': { text: 'related:',      cursorPos: 8 },
         'n': { text: 'AND',           cursorPos: 4 },
-        'e': { text: '-',             cursorPos: 1 },
+        'e': { text: '-""',           cursorPos: 2 },
         'a': { text: '""',            cursorPos: 1 },
         'o': { text: 'OR',            cursorPos: 3 },
 
