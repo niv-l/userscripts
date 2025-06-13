@@ -129,11 +129,7 @@
 
         toggleElement.addEventListener('click', (e) => {
             e.preventDefault(); // stop click from navigating to '#'
-<<<<<<< Updated upstream
             e.stopPropagation(); // stop click from propagating to the title link
-=======
-            e.stopPropagation(); // Stop click from propagating to the title link
->>>>>>> Stashed changes
             toggleReadStatus(paperId, resultElement);
         });
 
