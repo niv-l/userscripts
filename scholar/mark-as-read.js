@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Mark as read - Google Scholar
-// @version      0.2
+// @version      0.5
 // @description  Marks Google Scholar papers as 'read' and adds a visual tag.
 // @author       Nivyan Lakhani
 // @match        *://scholar.google.com/*
@@ -17,6 +17,9 @@
 
     // add some css to make our tag and button look nice.
     GM_addStyle(`
+        a.read-marker-tag, a.read-marker-toggle {
+            text-decoration: none;
+        }
         .read-marker-tag {
             background-color: #28a745;
             color: white;
@@ -107,11 +110,10 @@
         // remove any old indicators we might have added before.
         resultElement.querySelector('.read-marker-tag')?.remove();
         resultElement.querySelector('.read-marker-toggle')?.remove();
-        // Just in case, remove the old button from previous versions of the script
         resultElement.querySelector('.read-marker-button')?.remove();
 
-        // create the interactive element (either a tag or an icon)
-        const toggleElement = document.createElement('span');
+        const toggleElement = document.createElement('a');
+        toggleElement.href = '#';
 
         if (isRead) {
             toggleElement.className = 'read-marker-tag';
@@ -120,13 +122,13 @@
         } else {
             toggleElement.className = 'read-marker-toggle';
             toggleElement.title = 'Click to mark as read';
-            // A simple checkmark SVG icon
+            // checkmark svg icon
             toggleElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
         }
 
         toggleElement.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // Stop click from propagating to the title link
+            e.preventDefault(); // stop click from navigating to '#'
+            e.stopPropagation(); // stop click from propagating to the title link
             toggleReadStatus(paperId, resultElement);
         });
 
