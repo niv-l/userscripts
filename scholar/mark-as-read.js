@@ -21,25 +21,27 @@
             background-color: #28a745;
             color: white;
             padding: 2px 6px;
-            font-size: 0.8em;
+            font-size: 0.6em;
             font-weight: bold;
             border-radius: 4px;
             margin-right: 8px;
+            margin-left: 8px;
             vertical-align: middle;
             cursor: pointer;
             user-select: none; /* Prevent text selection on click */
             transition: background-color 0.15s ease-in-out;
         }
         .read-marker-tag:hover {
-            background-color: #218838; /* Darker green */
+            background-color: #A3BE8C;
         }
         .read-marker-toggle {
             display: inline-flex; /* Use flex to center the SVG */
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
+            width: 17px;
+            height: 17px;
             margin-right: 8px;
+            margin-left: 8px;
             vertical-align: middle;
             cursor: pointer;
             user-select: none; /* Prevent text selection on click */
@@ -47,13 +49,15 @@
             transition: opacity 0.15s ease-in-out;
             border: 1px solid #ccc;
             border-radius: 4px;
+            position: relative;
+            top: -1px;
         }
         .read-marker-toggle:hover {
             opacity: 1;
             border-color: #888;
         }
         .read-marker-toggle svg {
-            width: 14px;
+            width: 12px;
             height: 14px;
             fill: currentColor;
         }
