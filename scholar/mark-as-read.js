@@ -19,6 +19,7 @@
     GM_addStyle(`
         a.read-marker-tag, a.read-marker-toggle {
             text-decoration: none;
+            color: white !important;
         }
         .read-marker-tag {
             background-color: #28a745;
@@ -128,7 +129,11 @@
 
         toggleElement.addEventListener('click', (e) => {
             e.preventDefault(); // stop click from navigating to '#'
+<<<<<<< Updated upstream
             e.stopPropagation(); // stop click from propagating to the title link
+=======
+            e.stopPropagation(); // Stop click from propagating to the title link
+>>>>>>> Stashed changes
             toggleReadStatus(paperId, resultElement);
         });
 
