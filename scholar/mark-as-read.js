@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Mark as read - Google Scholar
-// @version      0.1
+// @version      0.5
 // @description  Marks Google Scholar papers as 'read' and adds a visual tag.
 // @author       Nivyan Lakhani
 // @match        *://scholar.google.com/*
@@ -17,19 +17,52 @@
 
     // add some css to make our tag and button look nice.
     GM_addStyle(`
+        a.read-marker-tag, a.read-marker-toggle {
+            text-decoration: none;
+        }
         .read-marker-tag {
             background-color: #28a745;
             color: white;
             padding: 2px 6px;
-            font-size: 0.8em;
+            font-size: 0.6em;
             font-weight: bold;
             border-radius: 4px;
             margin-right: 8px;
+            margin-left: 8px;
             vertical-align: middle;
-        }
-        .read-marker-button {
             cursor: pointer;
-            margin-left: 10px; /* Spacing from other links like 'Cite' */
+            user-select: none; /* Prevent text selection on click */
+            transition: background-color 0.15s ease-in-out;
+        }
+        .read-marker-tag:hover {
+            background-color: #A3BE8C;
+        }
+        .read-marker-toggle {
+            display: inline-flex; /* Use flex to center the SVG */
+            align-items: center;
+            justify-content: center;
+            width: 17px;
+            height: 17px;
+            margin-right: 8px;
+            margin-left: 8px;
+            vertical-align: middle;
+            cursor: pointer;
+            user-select: none; /* Prevent text selection on click */
+            opacity: 0.4;
+            transition: opacity 0.15s ease-in-out;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            position: relative;
+            top: -1px;
+        }
+        .read-marker-toggle:hover {
+            opacity: 1;
+            border-color: #888;
+        }
+        .read-marker-toggle svg {
+            width: 12px;
+            height: 14px;
+            fill: currentColor;
         }
     `);
 
@@ -65,37 +98,41 @@
     function updateSingleResultUI(resultElement) {
         const titleElement = resultElement.querySelector('.gs_rt');
         const titleLink = titleElement ? titleElement.querySelector('a') : null;
-        const footerElement = resultElement.querySelector('.gs_ri .gs_fl');  // <<< changed: target the left-side action bar only
 
-        // if the result doesn't have a title link or footer, skip it.
-        if (!titleLink || !footerElement) {
+        // if the result doesn't have a title link, skip it.
+        if (!titleLink) {
             return;
         }
 
         const paperId = titleLink.href; // Use the paper's URL as its unique ID.
         const isRead = readPapers.has(paperId);
 
-        // remove any old tag or button we might have added before.
+        // remove any old indicators we might have added before.
         resultElement.querySelector('.read-marker-tag')?.remove();
+        resultElement.querySelector('.read-marker-toggle')?.remove();
         resultElement.querySelector('.read-marker-button')?.remove();
 
-        // add the "read" tag if the paper is marked as read.
+        const toggleElement = document.createElement('a');
+        toggleElement.href = '#';
+
         if (isRead) {
-            const tag = document.createElement('span');
-            tag.className = 'read-marker-tag';
-            tag.textContent = 'READ';
-            titleElement.prepend(tag);
+            toggleElement.className = 'read-marker-tag';
+            toggleElement.textContent = 'READ';
+            toggleElement.title = 'Click to mark as unread';
+        } else {
+            toggleElement.className = 'read-marker-toggle';
+            toggleElement.title = 'Click to mark as read';
+            // checkmark svg icon
+            toggleElement.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
         }
 
-        // add the "mark as read/unread" button.
-        const button = document.createElement('a');
-        button.className = 'read-marker-button';
-        button.textContent = isRead ? 'Mark as Unread' : 'Mark as Read';
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
+        toggleElement.addEventListener('click', (e) => {
+            e.preventDefault(); // stop click from navigating to '#'
+            e.stopPropagation(); // stop click from propagating to the title link
             toggleReadStatus(paperId, resultElement);
         });
-        footerElement.appendChild(button);
+
+        titleElement.append(toggleElement);
     }
 
     // main function to process all results on the page.
