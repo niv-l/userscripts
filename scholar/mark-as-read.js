@@ -73,7 +73,7 @@
         try {
             readPapers = new Set(JSON.parse(storedData));
         } catch (e) {
-            console.error('Could not parse read papers data:', e);
+            console.error('Mark-as-Read: Could not parse read papers data:', e);
             readPapers = new Set();
         }
     }
