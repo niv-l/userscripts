@@ -65,7 +65,7 @@
     function updateSingleResultUI(resultElement) {
         const titleElement = resultElement.querySelector('.gs_rt');
         const titleLink = titleElement ? titleElement.querySelector('a') : null;
-        const footerElement = resultElement.querySelector('.gs_fl');
+        const footerElement = resultElement.querySelector('.gs_ri .gs_fl');  // <<< changed: target the left-side action bar only
 
         // if the result doesn't have a title link or footer, skip it.
         if (!titleLink || !footerElement) {
