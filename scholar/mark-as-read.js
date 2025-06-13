@@ -126,7 +126,7 @@
             toggleReadStatus(paperId, resultElement);
         });
 
-        titleElement.prepend(toggleElement);
+        titleElement.append(toggleElement);
     }
 
     // main function to process all results on the page.
