@@ -34,7 +34,7 @@
                 'l'  : 'linkedin.com',
                 'w'  : 'wikipedia.org',
                 'a'  : 'archive.org',
-                'n'  : 'nature.org'
+                'n'  : 'nature.com'
             }
         },
         'f': { // filetype:
