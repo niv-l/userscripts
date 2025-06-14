@@ -27,13 +27,14 @@
         's': { // site:
             operator: 'site:',
             subBindings: {
-                'g': 'github.com',
-                's': 'stackoverflow.com',
-                'r': 'reddit.com',
-                'l': 'linkedin.com',
-                'w': 'wikipedia.org',
-                'a': 'archive.org',
-                'm': 'medium.com'
+                'g'  : 'github.com',
+                'S-g': 'gwern.net',      // Shift + g  <<< example
+                's'  : 'stackoverflow.com',
+                'r'  : 'reddit.com',
+                'l'  : 'linkedin.com',
+                'w'  : 'wikipedia.org',
+                'a'  : 'archive.org',
+                'm'  : 'medium.com'
             }
         },
         'f': { // filetype:
@@ -75,20 +76,22 @@
 
         const inputRect = searchInput.getBoundingClientRect();
         previewElement.style.display = 'block';
-        previewElement.style.top = `${window.scrollY + inputRect.bottom + 5}px`;
+        previewElement.style.top  = `${window.scrollY + inputRect.bottom + 5}px`;
         previewElement.style.left = `${window.scrollX + inputRect.left}px`;
     }
 
     function hidePreview() {
-        if (previewElement) {
-            previewElement.style.display = 'none';
-        }
+        if (previewElement) previewElement.style.display = 'none';
         pendingBinding = null;
     }
 
     searchInput.addEventListener('keydown', function(e) {
-        // Handle the second key of a two-key binding.
+        // handle the second key of a two-key binding.
         if (pendingBinding) {
+            if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
+                return; // stay in pending mode, keep preview
+            }
+
             e.preventDefault();
             e.stopImmediatePropagation();
 
@@ -98,15 +101,21 @@
                 return;
             }
 
-            const subKey = e.key.toLowerCase();
-            const value = pendingBinding.subBindings[subKey];
+            // Modifier-aware descriptor
+            let descriptor = '';
+            if (e.ctrlKey)  descriptor += 'C-';
+            if (e.shiftKey) descriptor += 'S-';
+            descriptor += e.key.toLowerCase();
+
+            const value =
+                pendingBinding.subBindings[descriptor] ||
+                pendingBinding.subBindings[e.key.toLowerCase()];
 
             if (value) {
                 // A valid sub-binding was pressed, insert the value and a trailing space.
                 insertText(value + ' ', value.length + 1, false);
             }
 
-            // For any other key, exit pending mode.
             hidePreview();
             return;
         }
@@ -114,19 +123,17 @@
         // Handle the initial trigger (Alt + key).
         if (e.altKey) {
             const triggerKey = e.key.toLowerCase();
-            const binding = DORK_BINDINGS[triggerKey];
+            const binding   = DORK_BINDINGS[triggerKey];
 
             if (binding) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
                 if (binding.subBindings) {
-                    // Start a two-key binding by inserting the operator and waiting.
                     insertText(binding.operator, binding.operator.length, true, false);
                     pendingBinding = binding;
                     showPreview(binding);
                 } else {
-                    // It's a simple, one-shot binding. Append it with a trailing space.
                     insertText(binding.text, binding.cursorPos, true, true);
                 }
             }
@@ -146,7 +153,7 @@
         }
     });
 
-        // Code for previewing sub-maps.
+    // Code for previewing sub-maps.
     GM_addStyle(`
         .dorky-preview {
             position: absolute;
@@ -159,7 +166,7 @@
             font-size: 14px;
             z-index: 9999;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            display: none; /* Hidden by default */
+            display: none;
             max-width: 400px;
             line-height: 1.5;
         }
@@ -188,20 +195,23 @@
         searchInput.focus();
 
         if (appendToEnd) {
-            const currentValue = searchInput.value.trimEnd();
-            const textToInsert = (currentValue.length > 0 ? ' ' : '') + text + (addTrailingSpace ? ' ' : '');
-            searchInput.value = currentValue + textToInsert;
+            const currentValue  = searchInput.value.trimEnd();
+            const textToInsert  = (currentValue.length ? ' ' : '') +
+                                  text +
+                                  (addTrailingSpace ? ' ' : '');
+            searchInput.value   = currentValue + textToInsert;
 
-            const basePos = (currentValue.length > 0 ? currentValue.length + 1 : 0);
-            const finalCursorPos = basePos + cursorPos;
-            searchInput.setSelectionRange(finalCursorPos, finalCursorPos);
+            const basePos       = currentValue.length ? currentValue.length + 1 : 0;
+            const finalPos      = basePos + cursorPos;
+            searchInput.setSelectionRange(finalPos, finalPos);
         } else {
-            // Insert at the current cursor position.
             const start = searchInput.selectionStart;
-            const end = searchInput.selectionEnd;
-            searchInput.value = searchInput.value.substring(0, start) + text + searchInput.value.substring(end);
-            const newCursorPos = start + cursorPos;
-            searchInput.setSelectionRange(newCursorPos, newCursorPos);
+            const end   = searchInput.selectionEnd;
+            searchInput.value = searchInput.value.substring(0, start) +
+                                text +
+                                searchInput.value.substring(end);
+            const newPos = start + cursorPos;
+            searchInput.setSelectionRange(newPos, newPos);
         }
     }
 })();
