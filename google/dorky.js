@@ -28,13 +28,13 @@
             operator: 'site:',
             subBindings: {
                 'g'  : 'github.com',
-                'S-g': 'gwern.net',      // Shift + g  <<< example
+                'S-g': 'gwern.net',
                 's'  : 'stackoverflow.com',
                 'r'  : 'reddit.com',
                 'l'  : 'linkedin.com',
                 'w'  : 'wikipedia.org',
                 'a'  : 'archive.org',
-                'm'  : 'medium.com'
+                'n'  : 'nature.org'
             }
         },
         'f': { // filetype:
