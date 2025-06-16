@@ -4,7 +4,7 @@
 // @namespace    https://github.com/niv-l/userscripts
 // @version      0.1
 // @description  Collapses/expands the header bar on Vector 2010 & 2022 skins.
-// @match        https://*.wikipedia.org/*
+// @match        *://*.wikipedia.org/*
 // @grant        none
 // ==/UserScript==
 
