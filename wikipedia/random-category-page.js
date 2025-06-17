@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         Random Category Article - Wikipedia
 // @namespace    https://github.com/niv-l/userscripts/
-// @version      1.4
+// @version      1.6
 // @description  Adds a dice button next to Wikipedia category pages to go to a random article in that category.
 // @author       Nivyan Lakhani
-// @match        *://*.wikipedia.org/wiki/Category%3A*
-// @match        *://*.wikipedia.org/wiki/Category:*
+// @match        *://*.wikipedia.org/*
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -46,6 +45,8 @@
         </svg>
     `;
 
+    const CACHE_KEY = 'randomCategoryLastSearch';
+
     GM_addStyle(`
         .cat-random-btn {
             display: inline-block;
@@ -66,140 +67,30 @@
         }
     `);
 
-    const heading = document.getElementById('firstHeading');
-    if (!heading) return;
-
-    const categoryName = `Category:${heading.textContent.replace('Category:', '').trim()}`;
-
-    const button = document.createElement('a');
-    button.className = 'cat-random-btn';
-    button.href = '#';
-    button.title = 'Go to a random article in this category';
-    button.innerHTML = shuffleSVG;
-
-    button.addEventListener('click', async (e) => {
-        e.preventDefault();
-        button.style.pointerEvents = 'none';
-
-        const apiUrl = `/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(categoryName)}&cmlimit=500&cmtype=page&format=json&origin=*`;
-
-        try {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            const members = data?.query?.categorymembers;
-
-            if (members && members.length > 0) {
-                const randomMember = members[Math.floor(Math.random() * members.length)];
-                window.location.href = `/wiki/${encodeURIComponent(randomMember.title.replace(/ /g, '_'))}`;
-            } else {
-                button.style.pointerEvents = 'auto';
-            }
-        } catch (error) {
-            console.error('Random Category Article Error:', error);
-            button.style.pointerEvents = 'auto';
-        }
-    });
-
-    const deepButton = document.createElement('a');
-    deepButton.className = 'cat-random-btn';
-    deepButton.href = '#';
-    deepButton.title = 'Go to a random article in this category or its subcategories (1 level deep)';
-    deepButton.innerHTML = sitemapSVG;
-
-    deepButton.addEventListener('click', async (e) => {
-        e.preventDefault();
-        deepButton.style.pointerEvents = 'none';
-
+    async function executeSearch(category, depth) {
+        document.body.style.cursor = 'wait';
         try {
             const allPages = new Map();
-            const parentUrl = `/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(categoryName)}&cmlimit=500&cmtype=page|subcat&format=json&origin=*`;
+            let subcatsToScan = [{ title: category }];
 
-            const parentRes = await fetch(parentUrl);
-            const parentData = await parentRes.json();
-            const parentMembers = parentData?.query?.categorymembers || [];
+            for (let currentDepth = 0; currentDepth <= depth; currentDepth++) {
+                if (subcatsToScan.length === 0) break;
 
-            const subcatPromises = [];
-            for (const member of parentMembers) {
-                if (member.ns === 14) { // Namespace 14 is Category
-                    const subcatUrl = `/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(member.title)}&cmlimit=500&cmtype=page&format=json&origin=*`;
-                    subcatPromises.push(fetch(subcatUrl).then(res => res.json()));
-                } else {
-                    allPages.set(member.pageid, member);
-                }
-            }
-
-            const subcatResults = await Promise.all(subcatPromises);
-            for (const result of subcatResults) {
-                const subcatMembers = result?.query?.categorymembers || [];
-                for (const member of subcatMembers) {
-                    allPages.set(member.pageid, member);
-                }
-            }
-
-            const uniquePages = Array.from(allPages.values());
-
-            if (uniquePages.length > 0) {
-                const randomPage = uniquePages[Math.floor(Math.random() * uniquePages.length)];
-                window.location.href = `/wiki/${encodeURIComponent(randomPage.title.replace(/ /g, '_'))}`;
-            } else {
-                deepButton.style.pointerEvents = 'auto';
-            }
-        } catch (error) {
-            console.error('Deep Random Category Article Error:', error);
-            deepButton.style.pointerEvents = 'auto';
-        }
-    });
-
-    const deepestButton = document.createElement('a');
-    deepestButton.className = 'cat-random-btn';
-    deepestButton.href = '#';
-    deepestButton.title = 'Go to a random article in this category or its subcategories (2 levels deep)';
-    deepestButton.innerHTML = layersSVG;
-
-    deepestButton.addEventListener('click', async (e) => {
-        e.preventDefault();
-        deepestButton.style.pointerEvents = 'none';
-
-        try {
-            const allPages = new Map();
-            let subcatsLevel1 = [];
-
-            // Level 0 -> Level 1
-            const level0Url = `/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(categoryName)}&cmlimit=500&cmtype=page|subcat&format=json&origin=*`;
-            const level0Res = await fetch(level0Url);
-            const level0Data = await level0Res.json();
-            const level0Members = level0Data?.query?.categorymembers || [];
-
-            for (const member of level0Members) {
-                if (member.ns === 14) subcatsLevel1.push(member);
-                else allPages.set(member.pageid, member);
-            }
-
-            // Level 1 -> Level 2
-            if (subcatsLevel1.length > 0) {
-                const level1Promises = subcatsLevel1.map(cat =>
-                    fetch(`/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat.title)}&cmlimit=500&cmtype=page|subcat&format=json&origin=*`).then(res => res.json())
+                const isLastLevel = currentDepth === depth;
+                const cmtype = isLastLevel ? 'page' : 'page|subcat';
+                const promises = subcatsToScan.map(cat =>
+                    fetch(`/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat.title)}&cmlimit=500&cmtype=${cmtype}&format=json&origin=*`).then(res => res.json())
                 );
-                const level1Results = await Promise.all(level1Promises);
-                let subcatsLevel2 = [];
 
-                for (const result of level1Results) {
-                    const level1Members = result?.query?.categorymembers || [];
-                    for (const member of level1Members) {
-                        if (member.ns === 14) subcatsLevel2.push(member);
-                        else allPages.set(member.pageid, member);
-                    }
-                }
+                const results = await Promise.all(promises);
+                subcatsToScan = [];
 
-                // Level 2 -> Pages
-                if (subcatsLevel2.length > 0) {
-                    const level2Promises = subcatsLevel2.map(cat =>
-                         fetch(`/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat.title)}&cmlimit=500&cmtype=page&format=json&origin=*`).then(res => res.json())
-                    );
-                    const level2Results = await Promise.all(level2Promises);
-                    for (const result of level2Results) {
-                        const level2Members = result?.query?.categorymembers || [];
-                        for (const member of level2Members) {
+                for (const result of results) {
+                    const members = result?.query?.categorymembers || [];
+                    for (const member of members) {
+                        if (member.ns === 14) {
+                            subcatsToScan.push(member);
+                        } else {
                             allPages.set(member.pageid, member);
                         }
                     }
@@ -211,16 +102,52 @@
                 const randomPage = uniquePages[Math.floor(Math.random() * uniquePages.length)];
                 window.location.href = `/wiki/${encodeURIComponent(randomPage.title.replace(/ /g, '_'))}`;
             } else {
-                deepestButton.style.pointerEvents = 'auto';
+                 document.body.style.cursor = 'default';
             }
-
         } catch (error) {
-            console.error('Deepest Random Category Article Error:', error);
-            deepestButton.style.pointerEvents = 'auto';
+            console.error('Random Category Search Error:', error);
+            document.body.style.cursor = 'default';
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey && e.key.toLowerCase() === 'r') {
+            e.preventDefault();
+            const lastSearchJSON = localStorage.getItem(CACHE_KEY);
+            if (lastSearchJSON) {
+                const { category, depth } = JSON.parse(lastSearchJSON);
+                executeSearch(category, depth);
+            }
         }
     });
 
-    heading.appendChild(button);
-    heading.appendChild(deepButton);
-    heading.appendChild(deepestButton);
+    if (document.body.classList.contains('ns-14')) {
+        const heading = document.getElementById('firstHeading');
+        if (!heading) return;
+
+        const categoryName = `Category:${heading.textContent.replace(/^.+?:/, '').trim()}`;
+
+        function createButton(title, svg, depth) {
+            const button = document.createElement('a');
+            button.className = 'cat-random-btn';
+            button.href = '#';
+            button.title = `${title} (Alt+R to run again)`;
+            button.innerHTML = svg;
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const searchParams = { category: categoryName, depth };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(searchParams));
+                executeSearch(searchParams.category, searchParams.depth);
+            });
+            return button;
+        }
+
+        const button = createButton('Go to a random article in this category', shuffleSVG, 0);
+        const deepButton = createButton('Go to a random article in this category or its subcategories (1 level deep)', sitemapSVG, 1);
+        const deepestButton = createButton('Go to a random article in this category or its subcategories (2 levels deep)', layersSVG, 2);
+
+        heading.appendChild(button);
+        heading.appendChild(deepButton);
+        heading.appendChild(deepestButton);
+    }
 })();
