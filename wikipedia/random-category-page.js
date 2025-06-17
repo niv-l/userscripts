@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Random Category Article - Wikipedia
 // @namespace    https://github.com/niv-l/userscripts/
-// @version      1.3
+// @version      1.4
 // @description  Adds a dice button next to Wikipedia category pages to go to a random article in that category.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/wiki/Category%3A*
@@ -33,6 +33,16 @@
             <rect x="15" y="3" width="6" height="6"></rect>
             <path d="M6 9v6h6"></path>
             <path d="M15 9h-3v6"></path>
+        </svg>
+    `;
+
+    const layersSVG = `
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
         </svg>
     `;
 
@@ -140,6 +150,77 @@
         }
     });
 
+    const deepestButton = document.createElement('a');
+    deepestButton.className = 'cat-random-btn';
+    deepestButton.href = '#';
+    deepestButton.title = 'Go to a random article in this category or its subcategories (2 levels deep)';
+    deepestButton.innerHTML = layersSVG;
+
+    deepestButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        deepestButton.style.pointerEvents = 'none';
+
+        try {
+            const allPages = new Map();
+            let subcatsLevel1 = [];
+
+            // Level 0 -> Level 1
+            const level0Url = `/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(categoryName)}&cmlimit=500&cmtype=page|subcat&format=json&origin=*`;
+            const level0Res = await fetch(level0Url);
+            const level0Data = await level0Res.json();
+            const level0Members = level0Data?.query?.categorymembers || [];
+
+            for (const member of level0Members) {
+                if (member.ns === 14) subcatsLevel1.push(member);
+                else allPages.set(member.pageid, member);
+            }
+
+            // Level 1 -> Level 2
+            if (subcatsLevel1.length > 0) {
+                const level1Promises = subcatsLevel1.map(cat =>
+                    fetch(`/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat.title)}&cmlimit=500&cmtype=page|subcat&format=json&origin=*`).then(res => res.json())
+                );
+                const level1Results = await Promise.all(level1Promises);
+                let subcatsLevel2 = [];
+
+                for (const result of level1Results) {
+                    const level1Members = result?.query?.categorymembers || [];
+                    for (const member of level1Members) {
+                        if (member.ns === 14) subcatsLevel2.push(member);
+                        else allPages.set(member.pageid, member);
+                    }
+                }
+
+                // Level 2 -> Pages
+                if (subcatsLevel2.length > 0) {
+                    const level2Promises = subcatsLevel2.map(cat =>
+                         fetch(`/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(cat.title)}&cmlimit=500&cmtype=page&format=json&origin=*`).then(res => res.json())
+                    );
+                    const level2Results = await Promise.all(level2Promises);
+                    for (const result of level2Results) {
+                        const level2Members = result?.query?.categorymembers || [];
+                        for (const member of level2Members) {
+                            allPages.set(member.pageid, member);
+                        }
+                    }
+                }
+            }
+
+            const uniquePages = Array.from(allPages.values());
+            if (uniquePages.length > 0) {
+                const randomPage = uniquePages[Math.floor(Math.random() * uniquePages.length)];
+                window.location.href = `/wiki/${encodeURIComponent(randomPage.title.replace(/ /g, '_'))}`;
+            } else {
+                deepestButton.style.pointerEvents = 'auto';
+            }
+
+        } catch (error) {
+            console.error('Deepest Random Category Article Error:', error);
+            deepestButton.style.pointerEvents = 'auto';
+        }
+    });
+
     heading.appendChild(button);
     heading.appendChild(deepButton);
+    heading.appendChild(deepestButton);
 })();
