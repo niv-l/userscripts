@@ -208,6 +208,17 @@
 
   let selIndex = -1;
   input.addEventListener('keydown', e => {
+    if (e.altKey && !e.ctrlKey && !e.metaKey) {
+      const prefixes = { t: 'Talk:', w: 'Wikipedia:', c: 'Category:' };
+      const prefix = prefixes[e.key.toLowerCase()];
+      if (prefix) {
+        e.preventDefault();
+        input.value = prefix + input.value;
+        input.dispatchEvent(new Event('input'));
+        return;
+      }
+    }
+
     const total = listEl.children.length;
     if (!total) return;
 
