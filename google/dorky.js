@@ -157,7 +157,7 @@
     GM_addStyle(`
         .dorky-preview {
             position: absolute;
-            background-color: #303134;
+            background-color: #06080B;
             color: #e8eaed;
             border: 1px solid #5f6368;
             border-radius: 8px;
@@ -171,7 +171,7 @@
             line-height: 1.5;
         }
         .dorky-preview-title {
-            color: #8ab4f8;
+            color: #88C0D0;
             font-weight: bold;
             margin-bottom: 5px;
             padding-bottom: 3px;
@@ -182,7 +182,7 @@
             justify-content: space-between;
         }
         .dorky-preview-key {
-            color: #fdd663;
+            color: #9DB787;
             font-weight: bold;
             padding-right: 15px;
         }
