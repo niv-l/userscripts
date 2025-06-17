@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Random Category Article - Wikipedia
 // @namespace    https://github.com/niv-l/userscripts/
-// @version      1.2
+// @version      1.3
 // @description  Adds a dice button next to Wikipedia category pages to go to a random article in that category.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/wiki/Category%3A*
@@ -12,31 +12,29 @@
 (function() {
     'use strict';
 
-    const diceSVG = `
+    const shuffleSVG = `
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
              stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r=".5" fill="currentColor"></circle>
-            <circle cx="15.5" cy="8.5" r=".5" fill="currentColor"></circle>
-            <circle cx="15.5" cy="15.5" r=".5" fill="currentColor"></circle>
-            <circle cx="8.5" cy="15.5" r=".5" fill="currentColor"></circle>
-            <circle cx="12" cy="12" r=".5" fill="currentColor"></circle>
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
         </svg>
     `;
 
-    const deepDiceSVG = `
+    const sitemapSVG = `
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
              stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r=".5" fill="currentColor"></circle>
-            <circle cx="15.5" cy="8.5" r=".5" fill="currentColor"></circle>
-            <circle cx="15.5" cy="15.5" r=".5" fill="currentColor"></circle>
-            <circle cx="8.5" cy="15.5" r=".5" fill="currentColor"></circle>
-            <circle cx="8.5" cy="12" r=".5" fill="currentColor"></circle>
-            <circle cx="15.5" cy="12" r=".5" fill="currentColor"></circle>
-        </svg>`;
+            <rect x="3" y="3" width="6" height="6"></rect>
+            <rect x="15" y="15" width="6" height="6"></rect>
+            <rect x="15" y="3" width="6" height="6"></rect>
+            <path d="M6 9v6h6"></path>
+            <path d="M15 9h-3v6"></path>
+        </svg>
+    `;
 
     GM_addStyle(`
         .cat-random-btn {
@@ -49,8 +47,8 @@
             color: #36c; /* Wikipedia link blue */
             opacity: 0.65;
             transition: opacity 0.15s ease-in-out;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             transform: translateY(-1px);
         }
         .cat-random-btn:hover svg {
@@ -67,7 +65,7 @@
     button.className = 'cat-random-btn';
     button.href = '#';
     button.title = 'Go to a random article in this category';
-    button.innerHTML = diceSVG;
+    button.innerHTML = shuffleSVG;
 
     button.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -96,7 +94,7 @@
     deepButton.className = 'cat-random-btn';
     deepButton.href = '#';
     deepButton.title = 'Go to a random article in this category or its subcategories (1 level deep)';
-    deepButton.innerHTML = deepDiceSVG;
+    deepButton.innerHTML = sitemapSVG;
 
     deepButton.addEventListener('click', async (e) => {
         e.preventDefault();
