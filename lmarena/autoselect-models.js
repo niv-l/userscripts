@@ -14,7 +14,7 @@
 
   // --- USER CONFIGURATION ---
   const MODEL_1_NAME = 'o3-2025-04-16';                 // left
-  const MODEL_2_NAME = 'gemini-2.5-pro-preview-06-05'; // right
+  const MODEL_2_NAME = 'gemini-2.5-pro';               // right
   // --------------------------
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
