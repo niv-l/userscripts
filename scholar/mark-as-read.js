@@ -9,6 +9,10 @@
 // @grant        GM_addStyle
 // ==/UserScript==
 
+// Google Scholar natively supports an option to "Save" a paper by clicking on the star icon.
+// Though this functionality is similar to ours, I have only seen people using the functionality
+// to mark papers as 'to read'.
+
 (async function() {
     'use strict';
 
