@@ -209,7 +209,7 @@
   let selIndex = -1;
   input.addEventListener('keydown', e => {
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
-      // config for prexixes
+      // config for prefixes
       const prefixes = { t: 'Talk:',
                          w: 'Wikipedia:',
                          c: 'Category:',
