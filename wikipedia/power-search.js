@@ -209,7 +209,7 @@
   let selIndex = -1;
   input.addEventListener('keydown', e => {
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
-      const prefixes = { t: 'Talk:', w: 'Wikipedia:', c: 'Category:' };
+      const prefixes = { t: 'Talk:', w: 'Wikipedia:', c: 'Category:', u: 'User:' };
       const prefix = prefixes[e.key.toLowerCase()];
       if (prefix) {
         e.preventDefault();
