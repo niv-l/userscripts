@@ -13,7 +13,7 @@
 
     // Configure dork bindings.
     const DORK_BINDINGS = {
-        // Simple, one-shot templates (Alt + key)
+        // One-shot templates (Alt + key)
         'i': { text: 'intext:""',     cursorPos: 8 },
         't': { text: 'intitle:""',    cursorPos: 9 },
         'u': { text: 'inurl:""',      cursorPos: 7 },
