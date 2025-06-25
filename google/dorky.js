@@ -143,8 +143,13 @@
         // Handle auto-pairing for convenience.
         switch (e.key) {
             case '"':
-                e.preventDefault();
-                insertText('""', 1, false);
+                const cursorPos = searchInput.selectionStart;
+                const charBefore = searchInput.value.charAt(cursorPos - 1);
+
+                if (cursorPos === 0 || /\s/.test(charBefore)) {
+                    e.preventDefault();
+                    insertText('""', 1, false);
+                }
                 break;
             case '(':
                 e.preventDefault();
