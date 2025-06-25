@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Dorky - A Google-Fu / Dorking Helper
-// @version      0.3
+// @version      0.4
 // @description  Autocompletes quotes, adds keybinding templates for dorking (site:, intext:, etc.), and other QoL features.
 // @author       Nivyan Lakhani
 // @match        *://www.google.com/*
@@ -142,8 +142,23 @@
 
         // Handle auto-pairing for convenience.
         switch (e.key) {
-            case '"':
-                const cursorPos = searchInput.selectionStart;
+            case '"': {
+                const start = searchInput.selectionStart;
+                const end = searchInput.selectionEnd;
+
+                if (start !== end) {
+                    e.preventDefault();
+                    const selectedText = searchInput.value.substring(start, end);
+                    const textToInsert = `"${selectedText}"`;
+                    searchInput.value = searchInput.value.substring(0, start) +
+                                        textToInsert +
+                                        searchInput.value.substring(end);
+                    const newPos = start + textToInsert.length;
+                    searchInput.setSelectionRange(newPos, newPos);
+                    break;
+                }
+
+                const cursorPos = start;
                 const charBefore = searchInput.value.charAt(cursorPos - 1);
 
                 if (cursorPos === 0 || /\s/.test(charBefore)) {
@@ -151,6 +166,7 @@
                     insertText('""', 1, false);
                 }
                 break;
+            }
             case '(':
                 e.preventDefault();
                 insertText('()', 1, false);
