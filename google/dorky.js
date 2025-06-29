@@ -29,10 +29,13 @@
             subBindings: {
                 'g'  : 'github.com',
                 'S-g': 'gwern.net',
-                's'  : 'stackoverflow.com',
+                's'  : 'science.org',
+                'S-s': 'stackoverflow.com',
+                'c'  : 'cell.com',
                 'r'  : 'reddit.com',
                 'l'  : 'linkedin.com',
                 'w'  : 'wikipedia.org',
+                'm'  : 'mathoverflow.com',
                 'a'  : 'archive.org',
                 'n'  : 'nature.com'
             }
