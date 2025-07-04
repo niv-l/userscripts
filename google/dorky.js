@@ -149,6 +149,7 @@
                 const start = searchInput.selectionStart;
                 const end = searchInput.selectionEnd;
 
+                // If text is selected, wrap it in quotes.
                 if (start !== end) {
                     e.preventDefault();
                     const selectedText = searchInput.value.substring(start, end);
@@ -161,15 +162,18 @@
                     break;
                 }
 
+                // If no text is selected, check context for auto-pairing.
                 const cursorPos = start;
-                const charAfter = searchInput.value.charAt(cursorPos);
+                const value = searchInput.value;
+                const charBefore = value.charAt(cursorPos - 1);
+                const charAfter = value.charAt(cursorPos);
 
-                if (/\S/.test(charAfter)) {
-                    break;
+                // Auto-pair only if the cursor is surrounded by whitespace (or boundaries).
+                if ((cursorPos === 0 || /\s/.test(charBefore)) && (cursorPos === value.length || /\s/.test(charAfter))) {
+                    e.preventDefault();
+                    insertText('""', 1, false);
                 }
-
-                e.preventDefault();
-                insertText('""', 1, false);
+                // Otherwise, allow the default behavior (inserting a single quote).
                 break;
             }
             case '(':
