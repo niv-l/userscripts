@@ -162,12 +162,14 @@
                 }
 
                 const cursorPos = start;
-                const charBefore = searchInput.value.charAt(cursorPos - 1);
+                const charAfter = searchInput.value.charAt(cursorPos);
 
-                if (cursorPos === 0 || /\s/.test(charBefore)) {
-                    e.preventDefault();
-                    insertText('""', 1, false);
+                if (/\S/.test(charAfter)) {
+                    break;
                 }
+
+                e.preventDefault();
+                insertText('""', 1, false);
                 break;
             }
             case '(':
