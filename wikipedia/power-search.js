@@ -106,7 +106,7 @@
       padding-top: 15vh;
     }
     #wkq-box {
-      background:#fff; color:#202122; width:900px; max-width:90vw;
+      background:#fff; color:#202122; width:1050px; max-width:90vw;
       border-radius:6px; box-shadow:0 6px 24px rgba(0,0,0,.25);
       display:flex; flex-direction:row; overflow:hidden; font-size:15px;
       height: 65vh; max-height: 700px;
@@ -128,7 +128,7 @@
       background:#36c; color:#fff;
     }
     #wkq-right {
-      flex:1 1 40%; min-width:200px; background:#f6f6f6; padding:16px;
+      flex:1 1 55%; min-width:200px; background:#f6f6f6; padding:16px;
       overflow-y:auto; border-left:1px solid #eaecf0;
     }
     #wkq-right h2 { font-size:18px; margin-top:0; }
