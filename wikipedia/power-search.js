@@ -223,6 +223,7 @@
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       const prefixes = { t: 'Talk:',
                          e: 'Template:',
+                         s: 'Special:',
                          w: 'Wikipedia:',
                          c: 'Category:',
                          u: 'User:' };
