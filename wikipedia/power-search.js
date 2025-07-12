@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Wikipedia Power-Search
 // @namespace    https://github.com/niv-l/userscripts/
-// @version      1.2
+// @version      1.3
 // @description  Keyboard-centric search overlay for Wikipedia.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/*
@@ -14,7 +14,6 @@
 (function () {
   'use strict';
 
-  // available bindings
   const BINDINGS = [
     { id: 'doubleCtrl', label: 'Double Ctrl', type: 'double', key: 'Control', interval: 400 },
     { id: 'ctrlK',      label: 'Ctrl + K',   type: 'combo',  key: 'k', ctrl: true        },
@@ -23,7 +22,6 @@
 
   const DEFAULT_BINDING_ID = 'doubleCtrl';
 
-  // wrapper so the script still works if GM_* is missing (Firefox + Violentmonkey etc.)
   const storage = {
     get:  (k, d)  => (typeof GM_getValue === 'function') ? GM_getValue(k, d) : JSON.parse(localStorage.getItem(k) || 'null') ?? d,
     set:  (k, v)  => (typeof GM_setValue === 'function') ? GM_setValue(k, v) : localStorage.setItem(k, JSON.stringify(v)),
@@ -58,7 +56,6 @@
 
   let lastCtrlTime = 0;
 
-  // key listener
   document.addEventListener('keydown', e => {
     const bind = getCurrentBinding();
     switch (bind.type) {
@@ -86,7 +83,6 @@
       case 'single':
         if (e.key === bind.key &&
             !e.ctrlKey && !e.metaKey && !e.altKey) {
-          // let Wikipedia’s own search bar lose focus first
           if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
           e.preventDefault();
           toggleOverlay(true);
@@ -207,9 +203,24 @@
   }
 
   let selIndex = -1;
+  let fullPreview = false;
+  function toggleFullPreview () {
+    fullPreview = !fullPreview;
+    const li = listEl.children[selIndex];
+    if (li) {
+      fullPreview ? showPreviewFull(li.dataset.title)
+                  : showPreview(li.dataset.title);
+    }
+  }
+
   input.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+      e.preventDefault();
+      toggleFullPreview();
+      return;
+    }
+
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
-      // config for prefixes
       const prefixes = { t: 'Talk:',
                          e: 'Template:',
                          w: 'Wikipedia:',
@@ -265,30 +276,54 @@
     li.classList.add(KEY_NAV_CLASS);
     li.scrollIntoView({ block: 'nearest' });
     selIndex = [...listEl.children].indexOf(li);
-    showPreview(li.dataset.title);
+    fullPreview ? showPreviewFull(li.dataset.title)
+                : showPreview(li.dataset.title);
   }
   function getSel() {
     return listEl.children[selIndex];
   }
 
-  // preview logic
   let previewAbort = null;
   function showPreview(title) {
     if (!title) return;
     if (previewAbort) previewAbort.abort();
     previewAbort = new AbortController();
-
     previewEl.innerHTML = '<em>Loading…</em>';
-    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`, {signal:previewAbort.signal})
+    fetch(`https://${location.host}/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+          { signal: previewAbort.signal })
       .then(r => r.json())
       .then(d => {
-        if (d.title) {
-            previewEl.innerHTML = `
-            ${d.thumbnail ? `<img src="${d.thumbnail.source}" alt="">` : ''}
-            <h2>${d.title}</h2>
-            <div>${d.extract_html ?? d.extract}</div>`;
+        if (d.extract_html || d.extract) {
+          previewEl.innerHTML =
+            `${d.thumbnail ? `<img src="${d.thumbnail.source}" alt="">` : ''}` +
+            `<h2>${d.title}</h2><div>${d.extract_html ?? d.extract}</div>`;
         } else {
-            previewEl.innerHTML = `<h2>${title}</h2><em>No preview available.</em>`;
+          showPreviewFull(title);
+        }
+      })
+      .catch(() => { showPreviewFull(title); });
+  }
+
+  function showPreviewFull(title) {
+    if (!title) return;
+    if (previewAbort) previewAbort.abort();
+    previewAbort = new AbortController();
+    previewEl.innerHTML = '<em>Loading…</em>';
+    const url = `https://${location.host}/w/api.php?` + new URLSearchParams({
+      action: 'parse',
+      page: title,
+      format: 'json',
+      prop: 'text',
+      redirects: 1,
+      origin: '*'
+    });
+    fetch(url, { signal: previewAbort.signal })
+      .then(r => r.json())
+      .then(d => {
+        if (d.parse && d.parse.text && d.parse.text['*']) {
+          previewEl.innerHTML = d.parse.text['*'];
+        } else {
+          previewEl.innerHTML = `<h2>${title}</h2><em>No preview available.</em>`;
         }
       })
       .catch(() => {
