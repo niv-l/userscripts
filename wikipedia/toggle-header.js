@@ -5,6 +5,8 @@
 // @version      0.1
 // @description  Collapses/expands the header bar on Vector 2010 & 2022 skins.
 // @match        *://*.wikipedia.org/*
+// @match        *://*.mediawiki.org/*
+// @match        *://*.wikimedia.org/*
 // @grant        none
 // ==/UserScript==
 
