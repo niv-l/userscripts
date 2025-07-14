@@ -6,6 +6,7 @@
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/*
 // @match        *://*.mediawiki.org/*
+// @match        *://*.wikimedia.org/*
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue

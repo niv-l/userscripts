@@ -5,6 +5,8 @@
 // @description  Adds a dice button next to Wikipedia category pages to go to a random article in that category.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/*
+// @match        *://*.mediawiki.org/*
+// @match        *://*.wikimedia.org/*
 // @grant        GM_addStyle
 // ==/UserScript==
 
