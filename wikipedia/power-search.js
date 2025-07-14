@@ -5,6 +5,7 @@
 // @description  Keyboard-centric search overlay for Wikipedia.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/*
+// @match        *://*.mediawiki.org/*
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
