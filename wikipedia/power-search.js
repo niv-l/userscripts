@@ -228,6 +228,7 @@
                          s: 'Special:',
                          w: 'Wikipedia:',
                          c: 'Category:',
+                         p: 'Portal:',
                          u: 'User:' };
       const prefix = prefixes[e.key.toLowerCase()];
       if (prefix) {
