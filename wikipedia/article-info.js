@@ -40,6 +40,7 @@
             .userscript-status-a    { font-weight: 600; color: #202122; }
             .userscript-status-b    { font-weight: 600; color: #202122; }
             .userscript-status-c    { font-weight: 600; color: #202122; }
+            .userscript-status-list { font-weight: 600; color: #202122; }
             .userscript-status-start{ color: #54595d; }
             .userscript-status-stub { color: #72777d; }
         `;
@@ -78,7 +79,7 @@
             const pages = data?.query?.pages;
             if (!pages) return null;
 
-            const rank = { FA: 8, FL: 7, GA: 6, A: 5, B: 4, C: 3, Start: 2, Stub: 1 };
+            const rank = { FA: 8, FL: 7, GA: 6, A: 5, B: 4, C: 3, List: 3, Start: 2, Stub: 1 };
             const normalize = c => {
                 if (!c) return null;
                 const s = String(c).trim();
@@ -89,6 +90,7 @@
                 if (low === 'a') return 'A';
                 if (low === 'b' || low === 'b-class' || low === 'b+') return 'B';
                 if (low === 'c' || low === 'c-class') return 'C';
+                if (low === 'list' || low === 'list-class' || /^list/i.test(s)) return 'List';
                 if (/^start/i.test(s)) return 'Start';
                 if (/^stub/i.test(s)) return 'Stub';
                 return null;
@@ -114,6 +116,7 @@
                 A:    { text: 'A-Class',          className: 'userscript-status-a' },
                 B:    { text: 'B-Class',          className: 'userscript-status-b' },
                 C:    { text: 'C-Class',          className: 'userscript-status-c' },
+                List: { text: 'List-Class',       className: 'userscript-status-list' },
                 Start:{ text: 'Start-Class',      className: 'userscript-status-start' },
                 Stub: { text: 'Stub-Class',       className: 'userscript-status-stub' }
             };
