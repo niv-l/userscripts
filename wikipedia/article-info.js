@@ -125,17 +125,17 @@
 
     // Now we calculate the word count of the main article content.
     function getWordCount(contentElement) {
-      // Work on a clone so we don't modify the page
-      const clone = contentElement.cloneNode(true);
+        // Work on a clone so we don't modify the page
+        const clone = contentElement.cloneNode(true);
 
-      // Remove references list and inline citation markers
-      clone.querySelectorAll('ol.references, .reflist, .mw-references-wrap, sup.reference')
-           .forEach(el => el.remove());
+        // Remove references list and inline citation markers
+        clone.querySelectorAll('ol.references, .reflist, .mw-references-wrap, sup.reference')
+             .forEach(el => el.remove());
 
-      // Count remaining words
-      const text = clone.textContent;
-      const words = text.trim().split(/\s+/).filter(Boolean);
-      return words.length;
+        // Count remaining words
+        const text = clone.textContent;
+        const words = text.trim().split(/\s+/).filter(Boolean);
+        return words.length;
     }
 
 
