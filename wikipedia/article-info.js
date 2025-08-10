@@ -23,7 +23,6 @@
                 font-size: 0.8em;
                 color: #54595d; /* Standard Wikipedia subtitle color */
                 margin: 0.7em 0 0.2em;
-                padding-bottom: 0.6em;
             }
             #userscript-article-info strong {
                 color: #202122; /* standard Wikipedia text color */
