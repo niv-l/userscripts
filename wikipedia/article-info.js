@@ -13,7 +13,6 @@
     'use strict';
 
     // We inject our css styles, edit this if you want a different style.
-
     function addStyles() {
         const style = document.createElement('style');
         style.textContent = `
