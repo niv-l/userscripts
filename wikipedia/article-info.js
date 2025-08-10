@@ -5,7 +5,7 @@
 // @match        https://*.wikipedia.org/wiki/*
 // @exclude      https://*.wikipedia.org/wiki/Special:*
 // @exclude      https://*.wikipedia.org/wiki/File:*
-// @exclude      https://*/.wikipedia.org/wiki/Main_Page
+// @exclude      https://*.wikipedia.org/wiki/Main_Page
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
