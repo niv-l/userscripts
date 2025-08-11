@@ -4,7 +4,7 @@
 // @version      1.0
 // @description  Press Alt R to go to a random game.
 // @match        https://j-archive.com/*
-// @match        https://*./j-archive.com/*
+// @match        https://*.j-archive.com/*
 // @match        http://j-archive.com/*
 // @run-at       document-start
 // @grant        none
