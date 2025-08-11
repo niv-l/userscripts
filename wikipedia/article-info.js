@@ -79,7 +79,7 @@
             const pages = data?.query?.pages;
             if (!pages) return null;
 
-            const rank = { FA: 8, FL: 7, GA: 6, A: 5, B: 4, C: 3, List: 3, Start: 2, Stub: 1 };
+            const rank = { FL: 8, FA: 7, GA: 6, A: 5, B: 4, C: 3, List: 3, Start: 2, Stub: 1 };
             const normalize = c => {
                 if (!c) return null;
                 const s = String(c).trim();
