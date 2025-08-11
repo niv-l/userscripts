@@ -2,7 +2,7 @@
 // @name         J-Archive Go To Random Game
 // @author       Nivyan Lakhani
 // @version      1.0
-// @description  Press Alt R to go to a random game.
+// @description  Press Alt R to go to a random day's game.
 // @match        https://j-archive.com/*
 // @match        https://*.j-archive.com/*
 // @match        http://j-archive.com/*
