@@ -14,6 +14,11 @@
   'use strict';
 
   const MIN_ID = 1;
+
+  // I calculated the base ID as simply the last ID of the day that I wrote
+  // the script. I am aware that I could browse the home page for the latest
+  // game but this is more computationally expensive then just calculating this
+  // at runtime.
   const BASE_ID = 9262;                   // 2025-07-25 → 9262
   const BASE_UTC = Date.UTC(2025, 6, 25); // months are 0-based: July=6
   const MS_DAY = 86400000;
