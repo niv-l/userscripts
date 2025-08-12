@@ -13,7 +13,7 @@
   'use strict';
 
   // --- USER CONFIGURATION ---
-  const MODEL_1_NAME = 'gpt-5';                 // left
+  const MODEL_1_NAME = 'gpt-5-high';                 // left
   const MODEL_2_NAME = 'gemini-2.5-pro';               // right
   // --------------------------
 
