@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Wikipedia Article Info
 // @description  Displays word count and article status, replaces the typical tagline.
-// @author       loler
+// @author       Nivyan Lakhani
 // @match        https://*.wikipedia.org/wiki/*
 // @exclude      https://*.wikipedia.org/wiki/Special:*
 // @exclude      https://*.wikipedia.org/wiki/File:*
