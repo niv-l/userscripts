@@ -2,7 +2,7 @@
 // @name         Random Category Article - Wikipedia
 // @namespace    https://github.com/niv-l/userscripts/
 // @version      1.6
-// @description  Adds a dice button next to Wikipedia category pages to go to a random article in that category.
+// @description  Adds a dice button next to Wikipedia category pages to go to a random article in that category or subcategory.
 // @author       Nivyan Lakhani
 // @match        *://*.wikipedia.org/*
 // @match        *://*.mediawiki.org/*
