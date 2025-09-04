@@ -127,7 +127,7 @@
     }
     #wkq-list li { padding:6px 8px; cursor:pointer; border-radius:4px; }
     #wkq-list li.${KEY_NAV_CLASS}, #wkq-list li:hover {
-      background:#36c; color:#fff;
+      background:#5a2e73; color:#fff;
     }
     #wkq-right {
       flex:1 1 55%; min-width:200px; background:#f6f6f6; padding:16px;
