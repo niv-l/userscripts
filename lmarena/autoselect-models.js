@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LMArena Auto-Select Models
-// @version      2.0
-// @description  Automatically selects specified models on LMArena's side-by-side view.
+// @version      4.0
+// @description  Autoselects specified models on LMArena. Now optimized for speed using MutationObservers.
 // @author       Nivyan Lakhani
 // @match        https://beta.lmarena.ai/?mode=side-by-side
 // @match        https://lmarena.ai/?mode=side-by-side
@@ -10,77 +10,132 @@
 // ==/UserScript==
 
 (() => {
-  'use strict';
+    'use strict';
 
-  // --- USER CONFIGURATION ---
-  const MODEL_1_NAME = 'gpt-5-high';                 // left
-  const MODEL_2_NAME = 'gemini-2.5-pro';               // right
-  // --------------------------
+    // ==================================================================================
+    // --- USER CONFIGURATION ---
+    // ==================================================================================
 
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const MODEL_1_NAME = 'gemini-3-pro';
+    const MODEL_2_NAME = 'claude-opus-4-5-20251101-thinking-32k';
 
-  async function waitForElement(selector, parent = document, timeout = 8000) {
-    const deadline = Date.now() + timeout;
-    while (Date.now() < deadline) {
-      const el = parent.querySelector(selector);
-      if (el) return el;
-      await sleep(100);
-    }
-    return null;
-  }
+    const SELECTORS = {
+        dialog: 'div[role="dialog"]',
+        input: 'input[placeholder*="Search"]',
+        option: 'div[role="option"]',
+        buttonCandidates: 'button'
+    };
 
-  function setReactInputValue(input, value) {
-    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-    setter.call(input, value);
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-  }
+    /**
+     * Waits for an element to appear in the DOM using MutationObserver for zero-latency detection.
+     */
+    function waitFor(selector, scope = document) {
+        return new Promise(resolve => {
+            const existing = scope.querySelector(selector);
+            if (existing) return resolve(existing);
 
-  async function selectModel(combobox, modelName) {
-    if (!combobox || combobox.textContent.includes(modelName)) {
-      return;
-    }
-
-    combobox.click();
-
-    const dialog = await waitForElement('div[role="dialog"]');
-    if (!dialog) return console.error('[LMArena] Model selection dialog did not appear.');
-
-    const searchInput = await waitForElement('input', dialog);
-    if (!searchInput) return console.error('[LMArena] Search input not found in dialog.');
-
-    setReactInputValue(searchInput, modelName);
-
-    const modelItem = await waitForElement(`[role="option"]`, dialog);
-    if (!modelItem || !modelItem.textContent.includes(modelName)) {
-        return console.error(`[LMArena] Model "${modelName}" not found in the list.`);
+            const observer = new MutationObserver(() => {
+                const el = scope.querySelector(selector);
+                if (el) {
+                    observer.disconnect();
+                    resolve(el);
+                }
+            });
+            observer.observe(scope, { childList: true, subtree: true });
+        });
     }
 
-    modelItem.click();
+    /**
+     * React hack to trigger input changes programmatically
+     */
+    function setNativeValue(element, value) {
+        const valueSetter = Object.getOwnPropertyDescriptor(element, 'value').set;
+        const prototype = Object.getPrototypeOf(element);
+        const prototypeValueSetter = Object.getOwnPropertyDescriptor(prototype, 'value').set;
 
-    const deadline = Date.now() + 4000;
-    while (Date.now() < deadline) {
-      if (!document.body.contains(dialog)) break;
-      await sleep(100);
-    }
-  }
-
-
-  async function run() {
-    if (!await waitForElement('#chat-area', document, 10000)) {
-      return console.error('[LMArena] Chat area not found. Aborting.');
-    }
-
-    const modelPickers = document.querySelectorAll(
-      'button[role="combobox"][data-sentry-source-file="select-model.tsx"]'
-    );
-
-    if (modelPickers.length < 2) {
-      return console.error('[LMArena] Could not find the model picker buttons.');
+        if (valueSetter && valueSetter !== prototypeValueSetter) {
+            prototypeValueSetter.call(element, value);
+        } else {
+            valueSetter.call(element, value);
+        }
+        element.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    await selectModel(modelPickers[0], MODEL_1_NAME);
-    await selectModel(modelPickers[1], MODEL_2_NAME);
-  }
+    /**
+     * Selects a specific model from a specific dropdown button
+     */
+    async function performSelection(button, modelName) {
+        if (!button || button.textContent.toLowerCase().includes(modelName.toLowerCase())) {
+            return; // Already selected or invalid button
+        }
 
-  setTimeout(run, 300);
+        button.click();
+
+        const dialog = await waitFor(SELECTORS.dialog);
+        const input = await waitFor(SELECTORS.input, dialog);
+
+        setNativeValue(input, modelName);
+
+        // We use an XPath here to find the div that explicitly contains the text
+        const findOption = () => {
+            const options = Array.from(dialog.querySelectorAll(SELECTORS.option));
+            return options.find(opt => opt.textContent.toLowerCase().includes(modelName.toLowerCase()));
+        };
+
+        let targetOption = findOption();
+        if (!targetOption) {
+            await new Promise(resolve => {
+                const obs = new MutationObserver(() => {
+                    targetOption = findOption();
+                    if (targetOption) {
+                        obs.disconnect();
+                        resolve();
+                    }
+                });
+                obs.observe(dialog, { childList: true, subtree: true });
+            });
+        }
+
+        targetOption.click();
+    }
+
+    /**
+     * Identifies the two main model picker buttons based on common model names.
+     */
+    function findModelButtons() {
+        // Broad regex to identify model buttons versus other UI buttons
+        const pattern = /grok|google|qwen|gpt|claude|gemini|llama|mixtral|command|dbrx|model/i;
+        return Array.from(document.querySelectorAll('button'))
+            .filter(btn => pattern.test(btn.textContent) && btn.offsetParent !== null); // Must be visible
+    }
+
+    async function init() {
+        console.log('[LMArena Turbo] Waiting for UI...');
+
+        // Wait until we see at least 2 potential buttons in the DOM
+        if (findModelButtons().length < 2) {
+            await new Promise(resolve => {
+                const obs = new MutationObserver(() => {
+                    if (findModelButtons().length >= 2) {
+                        obs.disconnect();
+                        resolve();
+                    }
+                });
+                obs.observe(document.body, { childList: true, subtree: true });
+            });
+        }
+
+        const buttons = findModelButtons();
+        console.log('[LMArena Turbo] UI Ready. Executing selection.');
+
+        // Execute sequentially to prevent React state collision (safer than parallel)
+        // but without arbitrary sleeps between them.
+        await performSelection(buttons[0], MODEL_1_NAME);
+        await performSelection(buttons[1], MODEL_2_NAME);
+
+        console.log('[LMArena Turbo] Done.');
+    }
+
+    init();
+
 })();
